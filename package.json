@@ -1,0 +1,32 @@
+{
+  "name": "insightboardpro",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite", 
+    "build": "vite build", 
+    "preview": "vite preview",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RavirajDanidhariya/insightboard-pro.git"
+  },
+  "author": "Raviraj Danidhariya",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RavirajDanidhariya/insightboard-pro/issues"
+  },
+  "homepage": "https://github.com/RavirajDanidhariya/insightboard-pro#readme",
+  "devDependencies": {
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "browsersList": [
+    "last 2 versions"
+  ]
+}
