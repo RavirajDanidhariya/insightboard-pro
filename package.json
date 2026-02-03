@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "vite", 
-    "build": "vite build", 
+    "dev": "vite",
+    "build": "vite build",
     "preview": "vite preview",
     "test": "jest"
   },
@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/RavirajDanidhariya/insightboard-pro#readme",
   "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.3",
     "vite": "^7.3.1"
   },
   "dependencies": {

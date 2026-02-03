@@ -27,3 +27,8 @@
 - install vite, react and react-dom
 - npx vite, npx vite build
 - npx vite --port 3000
+- npm install  @vitejs/plugin-react - transforms JSX -> React.createElement ->Javascript:
+    - without this plugin, we need to write React.createElement and we can not use jsx. It assum it as a normal js file and throws syntax error
+
+- Moved index.jsx in the /src
+- moved jsx code into app in a new file
