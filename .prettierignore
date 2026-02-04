@@ -1,0 +1,25 @@
+#Dependencies
+node_modules
+
+#Build outputs
+dist
+build
+.vite
+
+#Coverage reports
+coverage
+
+#Lock files
+package-lock.json
+
+#Git
+.git
+
+# Static assets tjat should not be formatterd
+*.svg
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.webp

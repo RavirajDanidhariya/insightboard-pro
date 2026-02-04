@@ -32,3 +32,23 @@
 
 - Moved index.jsx in the /src
 - moved jsx code into app in a new file
+
+- npm install -D tailwindcss@3 postcss autoprefixer
+- npx tailwindcss init -p
+
+- npm install -D @types/node
+- npx shadcn@latest init
+    ✔ Preflight checks.
+    ✔ Verifying framework. Found Vite.
+    ✔ Validating Tailwind CSS.
+    ✔ Validating import alias.
+    √ Which color would you like to use as the base color? » Slate
+    ✔ Writing components.json.
+    ✔ Checking registry.
+    ✔ Updating tailwind.config.js
+    ✔ Updating CSS variables in src\index.css
+    ✔ Installing dependencies.
+    ✔ Created 1 file:
+      - src\utils.ts
+
+- npx shadcn@latest add button
