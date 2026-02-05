@@ -5,6 +5,7 @@ import {
   useReactTable,
   type SortingState,
   type ColumnDef,
+  getSortedRowModel,
 } from '@tanstack/react-table'
 import { generateMockData, SalesData } from '@/data/mockDataExplorer'
 
@@ -12,6 +13,8 @@ const NO_OF_ROWS = 50
 
 const DataExplorer = () => {
   const [data] = useState(() => generateMockData(NO_OF_ROWS))
+
+  const [sorting, setSorting] = useState<SortingState>([])
 
   const dataExplorerColumns: ColumnDef<SalesData>[] = [
     {
@@ -44,6 +47,11 @@ const DataExplorer = () => {
     columns: dataExplorerColumns,
     data: data,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    state: {
+      sorting,
+    },
   })
 
   return (
@@ -60,12 +68,17 @@ const DataExplorer = () => {
                     return (
                       <th
                         key={header.id}
-                        className="border p-2 bg-slate-100 text-left"
+                        className="border p-2 bg-slate-100 text-left cursor-pointer hover:bg-slate-200"
+                        onClick={header.column.getToggleSortingHandler()}
                       >
                         {flexRender(
                           header.column.columnDef.header,
                           header.getContext()
                         )}
+                        {{
+                          asc: ' 🔼',
+                          desc: ' 🔽',
+                        }[header.column.getIsSorted() as string] ?? null}
                       </th>
                     )
                   })}
