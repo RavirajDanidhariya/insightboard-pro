@@ -8,6 +8,14 @@ import {
   getSortedRowModel,
 } from '@tanstack/react-table'
 import { generateMockData, SalesData } from '@/data/mockDataExplorer'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 const NO_OF_ROWS = 50
 
@@ -20,6 +28,9 @@ const DataExplorer = () => {
     {
       accessorKey: 'id',
       header: 'Transaction ID',
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue('id')}</div>
+      ),
     },
     {
       accessorKey: 'customer',
@@ -32,10 +43,29 @@ const DataExplorer = () => {
     {
       accessorKey: 'amount',
       header: 'Amount',
+      cell: ({ row }) => {
+        const amount = parseFloat(row.getValue('amount'))
+        const formatted = new Intl.NumberFormat('en-us', {
+          style: 'currency',
+          currency: 'USD',
+        }).format(amount)
+        return <div className="font-semibold text-green-600"> {formatted}</div>
+      },
     },
     {
       accessorKey: 'status',
       header: 'Status',
+      cell: ({ row }) => {
+        const status = row.getValue('status') as string
+
+        return (
+          <span
+            className={`inline-flex items-center rounded-full px-2.5 py-2.5 text-xs font-medium  ${status === 'completed' ? 'bg-green-100 text-green-800' : status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}
+          >
+            {status}
+          </span>
+        )
+      },
     },
     {
       accessorKey: 'date',
@@ -56,19 +86,22 @@ const DataExplorer = () => {
 
   return (
     <div className="">
-      <h1 className="text-xl font-bold">Data Explorer Screen</h1>
-      <p className="text-slate-600 mb-4">Basic TanStack Table</p>
-      <div className="border rounded p-4">
-        <table className="w-full">
-          <thead>
+      <div className="mb-6">
+        <h1 className="text-xl font-bold">Data Explorer Screen</h1>
+        <p className="text-slate-600 mb-4">Basic TanStack Table</p>
+      </div>
+
+      <div className="border rounded">
+        <Table>
+          <TableHeader>
             {table.getHeaderGroups().map(headerGroup => {
               return (
-                <tr key={headerGroup.id}>
+                <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map(header => {
                     return (
-                      <th
+                      <TableHead
                         key={header.id}
-                        className="border p-2 bg-slate-100 text-left cursor-pointer hover:bg-slate-200"
+                        className="font-semibold text-slate-700"
                         onClick={header.column.getToggleSortingHandler()}
                       >
                         {flexRender(
@@ -79,32 +112,35 @@ const DataExplorer = () => {
                           asc: ' 🔼',
                           desc: ' 🔽',
                         }[header.column.getIsSorted() as string] ?? null}
-                      </th>
+                      </TableHead>
                     )
                   })}
-                </tr>
+                </TableRow>
               )
             })}
-          </thead>
-          <tbody>
+          </TableHeader>
+          <TableBody>
             {table.getRowModel().rows.map(row => {
               return (
-                <tr key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className="hover:bg-slate-50 transition-colors"
+                >
                   {row.getVisibleCells().map(cell => {
                     return (
-                      <td key={cell.id} className="border p-2">
+                      <TableCell key={cell.id} className="py-3">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
                         )}
-                      </td>
+                      </TableCell>
                     )
                   })}
-                </tr>
+                </TableRow>
               )
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )
