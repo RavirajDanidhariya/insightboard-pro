@@ -1,76 +1,97 @@
-import { useRef, useState } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { generateMockData } from '@/data/mockDataExplorer'
+import { useState } from 'react'
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  type SortingState,
+  type ColumnDef,
+} from '@tanstack/react-table'
+import { generateMockData, SalesData } from '@/data/mockDataExplorer'
 
-const NO_OF_ROWS = 50000
-const ROW_HIGHT = 72
+const NO_OF_ROWS = 50
 
 const DataExplorer = () => {
   const [data] = useState(() => generateMockData(NO_OF_ROWS))
 
-  // Parent ref for virtualizer - The scrollable element for your list
-  const parentRef = useRef<HTMLDivElement>(null)
+  const dataExplorerColumns: ColumnDef<SalesData>[] = [
+    {
+      accessorKey: 'id',
+      header: 'Transaction ID',
+    },
+    {
+      accessorKey: 'customer',
+      header: 'Customer',
+    },
+    {
+      accessorKey: 'product',
+      header: 'Product',
+    },
+    {
+      accessorKey: 'amount',
+      header: 'Amount',
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+    },
+    {
+      accessorKey: 'date',
+      header: 'Date',
+    },
+  ]
 
-  // Setup virtualizer
-  const virtualizer = useVirtualizer({
-    count: NO_OF_ROWS,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => ROW_HIGHT, //Approx height of each row
-    overscan: 10, // Render 10 etra items above/below viewport
+  const table = useReactTable({
+    columns: dataExplorerColumns,
+    data: data,
+    getCoreRowModel: getCoreRowModel(),
   })
-
-  const virtualItems = virtualizer.getVirtualItems()
 
   return (
     <div className="">
       <h1 className="text-xl font-bold">Data Explorer Screen</h1>
-      <p className="text-slate-600 mb-4">
-        Showing {NO_OF_ROWS} sales transactions
-      </p>
-      <div
-        ref={parentRef}
-        className="border rounded-lg overflow-auto h-[550px] bg-white"
-      >
-        <div
-          style={{
-            height: `${virtualizer.getTotalSize()}px`,
-            width: '100%',
-            position: 'relative',
-          }}
-        >
-          {virtualItems.map(virtualizeItem => {
-            const sale = data[virtualizeItem.index]
-            return (
-              <div
-                key={virtualizeItem.key}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: `${ROW_HIGHT}px`,
-                  transform: `translateY(${virtualizeItem.start}px)`,
-                }}
-                className="p-4 border-b hover:bg-slate-50 flex items-center justify-between"
-              >
-                <div className="flex-1">
-                  <div className="font-semibold text-slate-900">{sale.id}</div>
-                  <div className="text-sm text-slate-600">{sale.customer}</div>
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm">{sale.product}</div>
-                  <div className="text-xs text-slate-500">{sale.region}</div>
-                </div>
-                <div className="flex-1">
-                  <div className="font-bold text-green-600">
-                    {sale.amount.toLocaleString()}
-                  </div>
-                  <div className="text-xs text-slate-500">{sale.date}</div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+      <p className="text-slate-600 mb-4">Basic TanStack Table</p>
+      <div className="border rounded p-4">
+        <table className="w-full">
+          <thead>
+            {table.getHeaderGroups().map(headerGroup => {
+              return (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map(header => {
+                    return (
+                      <th
+                        key={header.id}
+                        className="border p-2 bg-slate-100 text-left"
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                      </th>
+                    )
+                  })}
+                </tr>
+              )
+            })}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map(row => {
+              return (
+                <tr key={row.id}>
+                  {row.getVisibleCells().map(cell => {
+                    return (
+                      <td key={cell.id} className="border p-2">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </td>
+                    )
+                  })}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   )

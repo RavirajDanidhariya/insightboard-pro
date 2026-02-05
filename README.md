@@ -52,3 +52,7 @@
       - src\utils.ts
 
 - npx shadcn@latest add button
+
+
+- npm i @tanstack/react-virtual - render 50k data with virtualization 
+- npm install @tanstack/react-table - adding tanstack table - headless ui
