@@ -1,6 +1,6 @@
-import { generateMockData, SalesData } from '@/data/mockDataExplorer'
-import { memo, useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { generateMockData } from '@/data/mockDataExplorer'
 
 const NO_OF_ROWS = 50000
 const ROW_HIGHT = 72
@@ -16,7 +16,7 @@ const DataExplorer = () => {
     count: NO_OF_ROWS,
     getScrollElement: () => parentRef.current,
     estimateSize: () => ROW_HIGHT, //Approx height of each row
-    overscan: 10, // Render 5 etra items above/below viewport
+    overscan: 10, // Render 10 etra items above/below viewport
   })
 
   const virtualItems = virtualizer.getVirtualItems()
@@ -71,31 +71,6 @@ const DataExplorer = () => {
             )
           })}
         </div>
-
-        {/*  */}
-        {/* {data.map(sale => {
-          return (
-            <div
-              key={sale.id}
-              className="p-4 border-b hover:bg-slate-50 flex items-center justify-between"
-            >
-              <div className="flex-1">
-                <div className="font-semibold text-slate-900">{sale.id}</div>
-                <div className="text-sm text-slate-600">{sale.customer}</div>
-              </div>
-              <div className="flex-1">
-                <div className="text-sm">{sale.product}</div>
-                <div className="text-xs text-slate-500">{sale.region}</div>
-              </div>
-              <div className="flex-1">
-                <div className="font-bold text-green-600">
-                  {sale.amount.toLocaleString()}
-                </div>
-                <div className="text-xs text-slate-500">{sale.date}</div>
-              </div>
-            </div>
-          )
-        })} */}
       </div>
     </div>
   )
