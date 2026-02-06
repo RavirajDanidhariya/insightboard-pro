@@ -69,10 +69,60 @@ const getPageNumbers = (current: number, total: number) => {
   return pages
 }
 
+const dataExplorerColumns: ColumnDef<SalesData>[] = [
+  {
+    accessorKey: 'id',
+    header: 'Transaction ID',
+    cell: ({ row }) => <div className="font-medium">{row.getValue('id')}</div>,
+  },
+  {
+    accessorKey: 'customer',
+    header: 'Customer',
+  },
+  {
+    accessorKey: 'product',
+    header: 'Product',
+  },
+  {
+    accessorKey: 'amount',
+    header: 'Amount',
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue('amount'))
+      const formatted = new Intl.NumberFormat('en-us', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(amount)
+      return <div className="font-semibold text-green-600"> {formatted}</div>
+    },
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => {
+      const status = row.getValue('status') as string
+
+      return (
+        <span
+          className={`inline-flex items-center rounded-full px-2.5 py-2.5 text-xs font-medium  ${status === 'completed' ? 'bg-green-100 text-green-800' : status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}
+        >
+          {status}
+        </span>
+      )
+    },
+  },
+  {
+    accessorKey: 'date',
+    header: 'Date',
+  },
+]
+
+const validSortByIDs = ['id', 'customer', 'product', 'amount', 'status', 'date']
+
+const validSortOrders = ['asc', 'desc'] as const
+
 const DataExplorer = () => {
   const [data] = useState(() => generateMockData(NO_OF_ROWS))
 
-  const [sorting, setSorting] = useState<SortingState>([])
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Read form URL
@@ -80,6 +130,18 @@ const DataExplorer = () => {
   const pageSizeParam = Number(
     searchParams.get('pageSize') || DEFAULT_PAGE_SIZE
   )
+  const sortByParam = searchParams.get('sortBy') || ''
+  const sortOrderParam = searchParams.get('sortOrder') || 'asc'
+
+  const isValidSortBy = validSortByIDs.includes(sortByParam as any)
+  const isValidSotOrder = validSortOrders.includes(sortOrderParam as any)
+
+  const [sorting, setSorting] = useState<SortingState>(() => {
+    if (sortByParam && isValidSortBy && isValidSotOrder) {
+      return [{ id: sortByParam, desc: sortOrderParam === 'desc' }]
+    }
+    return []
+  })
 
   const pageSize = ROW_OPTOINS.includes(pageSizeParam.toString())
     ? pageSizeParam
@@ -92,10 +154,19 @@ const DataExplorer = () => {
     const params = new URLSearchParams(searchParams)
     params.set('page', String(currentPage))
     params.set('pageSize', String(pageSize))
+
+    if (sorting.length > 0) {
+      params.set('sortBy', sorting[0].id)
+      params.set('sortOrder', sorting[0].desc ? 'desc' : 'asc')
+    } else {
+      params.delete('sortBy')
+      params.delete('sortOrder')
+    }
+
     if (params.toString() !== searchParams.toString()) {
       setSearchParams(params, { replace: true })
     }
-  }, [currentPage, pageSize, searchParams, setSearchParams])
+  }, [currentPage, pageSize, searchParams, setSearchParams, sorting])
 
   // paginated data
 
@@ -103,55 +174,6 @@ const DataExplorer = () => {
     const startIndex = (currentPage - 1) * pageSize
     return data.slice(startIndex, startIndex + pageSize)
   }, [currentPage, pageSize, data])
-
-  const dataExplorerColumns: ColumnDef<SalesData>[] = [
-    {
-      accessorKey: 'id',
-      header: 'Transaction ID',
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue('id')}</div>
-      ),
-    },
-    {
-      accessorKey: 'customer',
-      header: 'Customer',
-    },
-    {
-      accessorKey: 'product',
-      header: 'Product',
-    },
-    {
-      accessorKey: 'amount',
-      header: 'Amount',
-      cell: ({ row }) => {
-        const amount = parseFloat(row.getValue('amount'))
-        const formatted = new Intl.NumberFormat('en-us', {
-          style: 'currency',
-          currency: 'USD',
-        }).format(amount)
-        return <div className="font-semibold text-green-600"> {formatted}</div>
-      },
-    },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => {
-        const status = row.getValue('status') as string
-
-        return (
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-2.5 text-xs font-medium  ${status === 'completed' ? 'bg-green-100 text-green-800' : status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}
-          >
-            {status}
-          </span>
-        )
-      },
-    },
-    {
-      accessorKey: 'date',
-      header: 'Date',
-    },
-  ]
 
   const table = useReactTable({
     columns: dataExplorerColumns,
@@ -195,7 +217,7 @@ const DataExplorer = () => {
                     return (
                       <TableHead
                         key={header.id}
-                        className="font-semibold text-slate-700 sticky bg-red-500 top-0 z-10"
+                        className="font-semibold text-slate-700 sticky bg-slate-300 top-0 z-10 cursor-pointer"
                         onClick={header.column.getToggleSortingHandler()}
                       >
                         {flexRender(
@@ -251,7 +273,9 @@ const DataExplorer = () => {
             </SelectTrigger>
             <SelectContent>
               {ROW_OPTOINS.map(size => (
-                <SelectItem value={size}>{size}</SelectItem>
+                <SelectItem key={size} value={size}>
+                  {size}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
