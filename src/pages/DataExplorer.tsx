@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -16,13 +16,93 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
+import { useSearchParams } from 'react-router-dom'
 
-const NO_OF_ROWS = 50
+const NO_OF_ROWS = 200
+const ROW_OPTOINS = ['10', '25', '50', '100']
+const DEFAULT_PAGE = 1
+const DEFAULT_PAGE_SIZE = 10
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value))
+
+const getPageNumbers = (current: number, total: number) => {
+  const pages: (number | '...')[] = []
+  const maxVisible = 5
+
+  if (total <= maxVisible) {
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    pages.push(1)
+
+    if (current > 3) pages.push('...')
+
+    const start = Math.max(2, current - 1)
+    const end = Math.min(total - 1, current + 1)
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i)
+    }
+
+    if (current < total - 2) pages.push('...')
+    pages.push(total)
+  }
+
+  return pages
+}
 
 const DataExplorer = () => {
   const [data] = useState(() => generateMockData(NO_OF_ROWS))
 
   const [sorting, setSorting] = useState<SortingState>([])
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Read form URL
+  const pageParam = Number(searchParams.get('page') || DEFAULT_PAGE)
+  const pageSizeParam = Number(
+    searchParams.get('pageSize') || DEFAULT_PAGE_SIZE
+  )
+
+  const pageSize = ROW_OPTOINS.includes(pageSizeParam.toString())
+    ? pageSizeParam
+    : 10
+
+  const totalPages = Math.max(1, Math.ceil(data.length / pageSize))
+  const currentPage = clamp(pageParam, 1, totalPages)
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams)
+    params.set('page', String(currentPage))
+    params.set('pageSize', String(pageSize))
+    if (params.toString() !== searchParams.toString()) {
+      setSearchParams(params, { replace: true })
+    }
+  }, [currentPage, pageSize, searchParams, setSearchParams])
+
+  // paginated data
+
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize
+    return data.slice(startIndex, startIndex + pageSize)
+  }, [currentPage, pageSize, data])
 
   const dataExplorerColumns: ColumnDef<SalesData>[] = [
     {
@@ -75,7 +155,7 @@ const DataExplorer = () => {
 
   const table = useReactTable({
     columns: dataExplorerColumns,
-    data: data,
+    data: paginatedData,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
@@ -84,6 +164,20 @@ const DataExplorer = () => {
     },
   })
 
+  const updatePage = (page: number) => {
+    const params = new URLSearchParams(searchParams)
+    params.set('page', String(page))
+    params.set('pageSize', String(pageSize))
+    setSearchParams(params)
+  }
+
+  const updatePageSize = (newSize: number) => {
+    const params = new URLSearchParams(searchParams)
+    params.set('page', '1')
+    params.set('pageSize', String(newSize))
+    setSearchParams(params)
+  }
+
   return (
     <div className="">
       <div className="mb-6">
@@ -91,7 +185,7 @@ const DataExplorer = () => {
         <p className="text-slate-600 mb-4">Basic TanStack Table</p>
       </div>
 
-      <div className="border rounded">
+      <div className="border rounded h-[465px] overflow-auto  ">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map(headerGroup => {
@@ -101,7 +195,7 @@ const DataExplorer = () => {
                     return (
                       <TableHead
                         key={header.id}
-                        className="font-semibold text-slate-700"
+                        className="font-semibold text-slate-700 sticky bg-red-500 top-0 z-10"
                         onClick={header.column.getToggleSortingHandler()}
                       >
                         {flexRender(
@@ -141,6 +235,73 @@ const DataExplorer = () => {
             })}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="bg-white  p-4 flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <span className="text-sm font-medium text-gray-700">
+            Rows per page:
+          </span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={value => updatePageSize(Number(value))}
+          >
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ROW_OPTOINS.map(size => (
+                <SelectItem value={size}>{size}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center gap-1">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  className={
+                    currentPage === 1 ? 'pointer-events-none opacity-50' : ''
+                  }
+                  onClick={() => {
+                    updatePage(Math.max(0, currentPage - 1))
+                  }}
+                ></PaginationPrevious>
+              </PaginationItem>
+
+              {getPageNumbers(currentPage, totalPages).map((page, index) => (
+                <PaginationItem key={index}>
+                  {page === '...' ? (
+                    <PaginationEllipsis />
+                  ) : (
+                    <PaginationLink
+                      onClick={() => updatePage(page)}
+                      isActive={currentPage === page}
+                    >
+                      {page as number}
+                    </PaginationLink>
+                  )}
+                </PaginationItem>
+              ))}
+
+              <PaginationItem>
+                <PaginationNext
+                  className={
+                    currentPage === totalPages
+                      ? 'pointer-events-none opacity-50'
+                      : ''
+                  }
+                  onClick={() => {
+                    updatePage(Math.min(totalPages, currentPage + 1))
+                  }}
+                ></PaginationNext>
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       </div>
     </div>
   )
